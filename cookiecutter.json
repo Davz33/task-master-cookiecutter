@@ -1,0 +1,11 @@
+{
+  "project_name": "myproject",
+  "default_branch": "main",
+  "branch_prefix": "feature/",
+  "_copy_without_render": [
+    ".cursor/rules/taskmaster/*.mdc",
+    "scripts/tm-watch.py",
+    ".taskmaster/templates/*.txt"
+  ]
+}
+

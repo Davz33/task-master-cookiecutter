@@ -1,0 +1,22 @@
+# Taskmaster-related Makefile targets
+# Add these to your existing Makefile
+
+.PHONY: tm-watch tm-watch-status worktree-list
+
+# Auto-refresh taskmaster list (Ctrl+C to stop)
+tm-watch:
+	@python3 scripts/tm-watch.py
+
+# Auto-refresh taskmaster show for specific task (Ctrl+C to stop)
+# Usage: make tm-watch-status ID=27
+tm-watch-status:
+	@if [ -z "$(ID)" ]; then \
+		echo "Error: ID is required. Usage: make tm-watch-status ID=<task-id>"; \
+		exit 1; \
+	fi
+	@python3 scripts/tm-watch-status.py $(ID)
+
+# List all git worktrees
+worktree-list:
+	@./scripts/worktree-list.sh
+

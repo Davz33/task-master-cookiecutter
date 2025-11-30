@@ -1,0 +1,118 @@
+---
+description: Git worktree integration patterns for Taskmaster parallel development
+globs: **/*
+alwaysApply: true
+---
+
+# Git Worktree Integration with Taskmaster
+
+This guide outlines how to use Git worktrees with Taskmaster for parallel feature development.
+
+## Mandatory Worktree Usage
+
+- **ALL feature work MUST be done in a git worktree** - Never work directly in the main repository directory
+- **Each feature branch MUST have its own worktree** - This enables true parallel development
+- **Worktrees are created in parent directory** - Format: `../<sanitized-project-name>-<feature-name>`
+- **Use the helper script** - Always use `./scripts/worktree-setup.sh` to create worktrees
+
+## Worktree Setup Workflow
+
+1. **Create worktree for feature branch**:
+   ```bash
+   ./scripts/worktree-setup.sh {{ branch_prefix }}websocket-server feature-websocket
+   ```
+2. **Navigate to worktree directory**:
+   ```bash
+   cd ../<sanitized-project-name>-websocket-server
+   ```
+3. **Work in the worktree** - All development happens in the worktree directory
+4. **Commit and push from worktree** - Normal git operations work in worktree
+5. **Remove worktree when done**:
+   ```bash
+   git worktree remove ../<sanitized-project-name>-websocket-server
+   ```
+
+## Worktree Benefits
+
+- ✅ **True parallel development** - Multiple branches checked out simultaneously
+- ✅ **No branch switching** - Each feature has its own directory
+- ✅ **Independent dev servers** - Can run different services in each worktree
+- ✅ **Clean separation** - No conflicts between features
+- ✅ **Shared git repository** - All worktrees share the same `.git` directory
+
+## Worktree Management
+
+- **List all worktrees**: `./scripts/worktree-list.sh` or `git worktree list`
+- **Create worktree**: `./scripts/worktree-setup.sh <branch> [tag]`
+- **Remove worktree**: `git worktree remove <path>`
+- **Worktree locations**: Always in parent directory (`../<sanitized-project-name>-<feature-name>`)
+
+## Taskmaster Integration
+
+- **Each worktree can use a different tag** - Set up during worktree creation
+- **Tags persist across worktrees** - Task progress is shared across all worktrees
+- **Switch tags in worktree**: `task-master use-tag <tag-name>`
+
+## Prohibited Practices
+
+- ❌ **NEVER work directly in main repository** - Always use a worktree
+- ❌ **NEVER checkout feature branches in main repo** - Use worktrees instead
+- ❌ **NEVER commit from main repo directory** - All commits must be from worktrees
+- ❌ **NEVER have uncommitted changes when creating worktree** - Commit or stash first
+
+## Automatic Worktree Pruning After Merge
+
+- **MANDATORY**: After a feature branch is merged into `{{ default_branch }}` via merge commit, the associated worktree MUST be pruned automatically
+- **Workflow**:
+  1. Complete merge commit into `{{ default_branch }}` (from main repository directory)
+  2. **Immediately after merge commit succeeds**, prune the feature branch worktree:
+     ```bash
+     git worktree remove ../<sanitized-project-name>-<feature-name> --force
+     ```
+  3. Delete the merged feature branch:
+     ```bash
+     git branch -d {{ branch_prefix }}<feature-name>
+     # Use -D if branch shows as not fully merged (safe after successful merge)
+     ```
+- **Safety Check**: 
+  - ✅ **ALWAYS verify the branch being pruned is NOT `{{ default_branch }}`** before executing worktree removal
+  - ✅ **NEVER prune the main branch worktree** - The main repository directory worktree must always remain
+  - ✅ **Verify merge commit completed successfully** before pruning
+- **When to Prune**:
+  - ✅ After successful merge commit into `{{ default_branch }}`
+  - ✅ After verifying the branch is fully merged: `git branch --merged {{ default_branch }} | grep {{ branch_prefix }}<name>`
+  - ❌ Do NOT prune if merge failed or was aborted
+  - ❌ Do NOT prune if branch has uncommitted changes (commit or discard first)
+- **Verification Steps**:
+  1. Confirm merge commit exists: `git log --oneline -1` should show merge commit
+  2. Verify branch is merged: `git branch --merged {{ default_branch }} | grep {{ branch_prefix }}<name>`
+  3. Check worktree exists: `git worktree list | grep <feature-name>`
+  4. Verify NOT pruning main: Ensure worktree path is NOT the main repository directory
+  5. Execute pruning commands
+  6. Verify cleanup: `git worktree list` should no longer show the feature worktree
+
+## Standard Development Workflow
+
+1. **Create worktree for feature**:
+   ```bash
+   ./scripts/worktree-setup.sh {{ branch_prefix }}my-feature feature-my-feature
+   cd ../<sanitized-project-name>-my-feature
+   ```
+2. **Work on the feature** - All development happens in the worktree
+3. **Commit changes** from worktree
+4. **Push from worktree**: `git push origin {{ branch_prefix }}my-feature`
+5. **Merge into {{ default_branch }}** (from main repository directory):
+   ```bash
+   cd /path/to/{{ project_name }}  # Main repository directory
+   git merge {{ branch_prefix }}my-feature --no-ff -m "Merge {{ branch_prefix }}my-feature: <description>"
+   ```
+6. **Prune worktree and branch** (MANDATORY after successful merge):
+   ```bash
+   # Verify merge succeeded and branch is merged
+   git branch --merged {{ default_branch }} | grep {{ branch_prefix }}my-feature
+   # Prune worktree (with safety check - never prune main)
+   git worktree remove ../<sanitized-project-name>-my-feature --force
+   # Delete merged branch
+   git branch -d {{ branch_prefix }}my-feature
+   ```
+7. **Repeat** or switch to another worktree
