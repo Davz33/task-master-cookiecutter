@@ -19,7 +19,7 @@ This guide outlines how to use Git worktrees with Taskmaster for parallel featur
 
 1. **Create worktree for feature branch**:
    ```bash
-   ./scripts/worktree-setup.sh {{ branch_prefix }}websocket-server feature-websocket
+   ./scripts/worktree-setup.sh {{ cookiecutter.branch_prefix }}websocket-server feature-websocket
    ```
 2. **Navigate to worktree directory**:
    ```bash
@@ -62,30 +62,30 @@ This guide outlines how to use Git worktrees with Taskmaster for parallel featur
 
 ## Automatic Worktree Pruning After Merge
 
-- **MANDATORY**: After a feature branch is merged into `{{ default_branch }}` via merge commit, the associated worktree MUST be pruned automatically
+- **MANDATORY**: After a feature branch is merged into `{{ cookiecutter.default_branch }}` via merge commit, the associated worktree MUST be pruned automatically
 - **Workflow**:
-  1. Complete merge commit into `{{ default_branch }}` (from main repository directory)
+  1. Complete merge commit into `{{ cookiecutter.default_branch }}` (from main repository directory)
   2. **Immediately after merge commit succeeds**, prune the feature branch worktree:
      ```bash
      git worktree remove ../<sanitized-project-name>-<feature-name> --force
      ```
   3. Delete the merged feature branch:
      ```bash
-     git branch -d {{ branch_prefix }}<feature-name>
+     git branch -d {{ cookiecutter.branch_prefix }}<feature-name>
      # Use -D if branch shows as not fully merged (safe after successful merge)
      ```
 - **Safety Check**: 
-  - ✅ **ALWAYS verify the branch being pruned is NOT `{{ default_branch }}`** before executing worktree removal
+  - ✅ **ALWAYS verify the branch being pruned is NOT `{{ cookiecutter.default_branch }}`** before executing worktree removal
   - ✅ **NEVER prune the main branch worktree** - The main repository directory worktree must always remain
   - ✅ **Verify merge commit completed successfully** before pruning
 - **When to Prune**:
-  - ✅ After successful merge commit into `{{ default_branch }}`
-  - ✅ After verifying the branch is fully merged: `git branch --merged {{ default_branch }} | grep {{ branch_prefix }}<name>`
+  - ✅ After successful merge commit into `{{ cookiecutter.default_branch }}`
+  - ✅ After verifying the branch is fully merged: `git branch --merged {{ cookiecutter.default_branch }} | grep {{ cookiecutter.branch_prefix }}<name>`
   - ❌ Do NOT prune if merge failed or was aborted
   - ❌ Do NOT prune if branch has uncommitted changes (commit or discard first)
 - **Verification Steps**:
   1. Confirm merge commit exists: `git log --oneline -1` should show merge commit
-  2. Verify branch is merged: `git branch --merged {{ default_branch }} | grep {{ branch_prefix }}<name>`
+  2. Verify branch is merged: `git branch --merged {{ cookiecutter.default_branch }} | grep {{ cookiecutter.branch_prefix }}<name>`
   3. Check worktree exists: `git worktree list | grep <feature-name>`
   4. Verify NOT pruning main: Ensure worktree path is NOT the main repository directory
   5. Execute pruning commands
@@ -95,24 +95,24 @@ This guide outlines how to use Git worktrees with Taskmaster for parallel featur
 
 1. **Create worktree for feature**:
    ```bash
-   ./scripts/worktree-setup.sh {{ branch_prefix }}my-feature feature-my-feature
+   ./scripts/worktree-setup.sh {{ cookiecutter.branch_prefix }}my-feature feature-my-feature
    cd ../<sanitized-project-name>-my-feature
    ```
 2. **Work on the feature** - All development happens in the worktree
 3. **Commit changes** from worktree
-4. **Push from worktree**: `git push origin {{ branch_prefix }}my-feature`
-5. **Merge into {{ default_branch }}** (from main repository directory):
+4. **Push from worktree**: `git push origin {{ cookiecutter.branch_prefix }}my-feature`
+5. **Merge into {{ cookiecutter.default_branch }}** (from main repository directory):
    ```bash
-   cd /path/to/{{ project_name }}  # Main repository directory
-   git merge {{ branch_prefix }}my-feature --no-ff -m "Merge {{ branch_prefix }}my-feature: <description>"
+   cd /path/to/{{ cookiecutter.project_name }}  # Main repository directory
+   git merge {{ cookiecutter.branch_prefix }}my-feature --no-ff -m "Merge {{ cookiecutter.branch_prefix }}my-feature: <description>"
    ```
 6. **Prune worktree and branch** (MANDATORY after successful merge):
    ```bash
    # Verify merge succeeded and branch is merged
-   git branch --merged {{ default_branch }} | grep {{ branch_prefix }}my-feature
+   git branch --merged {{ cookiecutter.default_branch }} | grep {{ cookiecutter.branch_prefix }}my-feature
    # Prune worktree (with safety check - never prune main)
    git worktree remove ../<sanitized-project-name>-my-feature --force
    # Delete merged branch
-   git branch -d {{ branch_prefix }}my-feature
+   git branch -d {{ cookiecutter.branch_prefix }}my-feature
    ```
 7. **Repeat** or switch to another worktree

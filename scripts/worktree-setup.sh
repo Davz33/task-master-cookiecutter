@@ -23,12 +23,12 @@ usage() {
     echo "Creates a git worktree for a feature branch and optionally sets up a taskmaster tag."
     echo ""
     echo "Arguments:"
-    echo "  branch-name  Name of the feature branch (e.g., {{ branch_prefix }}websocket-server)"
-    echo "  tag-name     Optional taskmaster tag name (defaults to branch name with '{{ branch_prefix }}' prefix removed)"
+    echo "  branch-name  Name of the feature branch (e.g., {{ cookiecutter.branch_prefix }}websocket-server)"
+    echo "  tag-name     Optional taskmaster tag name (defaults to branch name with '{{ cookiecutter.branch_prefix }}' prefix removed)"
     echo ""
     echo "Examples:"
-    echo "  $0 {{ branch_prefix }}websocket-server feature-websocket"
-    echo "  $0 {{ branch_prefix }}timeline-component"
+    echo "  $0 {{ cookiecutter.branch_prefix }}websocket-server feature-websocket"
+    echo "  $0 {{ cookiecutter.branch_prefix }}timeline-component"
     echo ""
     exit 1
 }
@@ -39,11 +39,11 @@ if [ $# -lt 1 ]; then
 fi
 
 BRANCH_NAME="$1"
-TAG_NAME="${2:-${BRANCH_NAME#{{ branch_prefix }}}}"
+TAG_NAME="${2:-${BRANCH_NAME#{{ cookiecutter.branch_prefix }}}}"
 
 # Validate branch name
-if [[ ! "$BRANCH_NAME" =~ ^{{ branch_prefix }} ]]; then
-    echo -e "${YELLOW}Warning: Branch name doesn't start with '{{ branch_prefix }}'. Continuing anyway...${NC}"
+if [[ ! "$BRANCH_NAME" =~ ^{{ cookiecutter.branch_prefix }} ]]; then
+    echo -e "${YELLOW}Warning: Branch name doesn't start with '{{ cookiecutter.branch_prefix }}'. Continuing anyway...${NC}"
 fi
 
 # Check if branch exists
@@ -55,7 +55,7 @@ else
         echo -e "${YELLOW}Branch creation failed. It may already exist remotely.${NC}"
     }
     # Switch back to default branch
-    git checkout {{ default_branch }} 2>/dev/null || git checkout master 2>/dev/null || true
+    git checkout {{ cookiecutter.default_branch }} 2>/dev/null || git checkout master 2>/dev/null || true
 fi
 
 # Determine worktree directory name
@@ -63,7 +63,7 @@ fi
 # Git worktree names should be lowercase, use hyphens, and avoid special characters
 # Using shell to sanitize: lowercase, replace spaces/underscores with hyphens, remove invalid chars
 PROJECT_NAME_SANITIZED=$(echo "{{ cookiecutter.project_name }}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
-WORKTREE_DIR="../${PROJECT_NAME_SANITIZED}-${BRANCH_NAME#{{ branch_prefix }}}"
+WORKTREE_DIR="../${PROJECT_NAME_SANITIZED}-${BRANCH_NAME#{{ cookiecutter.branch_prefix }}}"
 
 # Check if worktree already exists
 if [ -d "$WORKTREE_DIR" ]; then

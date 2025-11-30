@@ -3,7 +3,8 @@
   "default_branch": "main",
   "branch_prefix": "feature/",
   "_copy_without_render": [
-    ".cursor/rules/taskmaster/*.mdc",
+    ".cursor/rules/taskmaster/dev_workflow.mdc",
+    ".cursor/rules/taskmaster/taskmaster.mdc",
     "scripts/tm-watch.py",
     ".taskmaster/templates/*.txt"
   ]
